@@ -1,0 +1,93 @@
+/* colors */
+$purple: #6441A5;
+$cyan:   #6ed3cf;
+$gray:   #e1e8f0;
+$d-gray: #535353;
+$red:    #a70097;
+$white:  #ffffff;
+
+/* fonts */
+$primary-font: 'Raleway';
+$secondary-font: 'Raleway';
+
+/* mixins */
+
+@mixin shadow($opacity) {
+	-webkit-box-shadow: 10px 10px 45px 2px rgba(0, 0, 0, $opacity);
+	   -moz-box-shadow: 10px 10px 45px 2px rgba(0, 0, 0, $opacity);
+	        box-shadow: 10px 10px 45px 2px rgba(0, 0, 0, $opacity);
+}
+
+@mixin glow($color) {
+	box-shadow: 0 0 10px $color;
+}
+
+/* styles */
+body {
+	font-family: 'Lato';
+}
+
+a:link,
+a:hover,
+a:visited,
+a:active {
+	text-decoration: none;
+	color: $d-gray;
+}
+
+.channel {
+	@include shadow(.1);
+	margin-top: 25px;
+	background-color: $white;
+	height: 115px;
+	background-clip: border-box;
+	border-radius: 6px;
+	overflow: hidden;
+	background-color: $gray;
+	&:hover {
+		@include shadow(.25);
+	}
+}
+
+.channel-logo {
+	height: inherit;
+	float: left;
+	border-top-left-radius: 6px;
+	border-bottom-left-radius: 6px;
+}
+
+.channel-name {
+	margin-top: 10px;
+	color: $purple;
+	font-family: $secondary-font;
+}
+
+.channel-subtitle {
+	padding-top: 5px;
+}
+
+.page-logo {
+	margin-top: 10px;
+}
+
+.search-bar {
+	margin-top: 15px;
+	input,
+	.btn {
+		border: 1px solid $purple;
+		color: $purple;
+	}
+	input[type=text]:focus {
+		@include glow($purple);
+		border-color: $purple;
+	}
+}
+
+.status-buttons {
+    display: flex;
+    justify-content: center;
+		color: $purple;
+    margin-top: 20px;
+    font: menu;
+  
+}

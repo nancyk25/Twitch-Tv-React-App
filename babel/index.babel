@@ -1,0 +1,219 @@
+const CLIENT_ID = "qz6d62kpplo4bq9c23wkfz4sp91bjr"; 
+const TWITCH_LOGO = "http://static1.squarespace.com/static/510d16d5e4b0e3b888b8ec28/t/560f9916e4b0827aaefe9bd1/1443862807121/Twitch_Logo_Black.png";
+const TWITCH_API = "https://api.twitch.tv/kraken";
+const CHANNELS = ["freecodecamp", "GfinityTV", "veemerk", "iijeriichoii", "SethBling", "Xisuma", "OMGitsfirefoxx", "thatmumbojumbo", "ethotv", "captainsparklez", "syndicate", "ramettacraft", "brunofin", "comster404", "twitchoffice", "FRCGameSense", "WePlayDota2"];
+
+class Twitch extends React.Component {
+  constructor () {
+    super();
+    this.state = {
+      input: "",
+      channels: [],
+      default: []
+    };
+    //map through array of channels and send fetch request for each
+    CHANNELS.map(channel => this.fetchChannel(channel));
+    
+    this.filterOnline = this.filterOnline.bind(this)
+    this.filterOffline = this.filterOffline.bind(this)
+    this.filterAll = this.filterAll.bind(this)
+    this.fetchChannel = this.fetchChannel.bind(this)
+    this.deleteCard = this.deleteCard.bind(this)
+  }
+  
+//FETCH method
+//Grabbing the input and setting up channels here...
+  fetchChannel (channel = this.state.input) {
+    this.setState({ input: ""});
+    const url = TWITCH_API + "/channels/" + channel + "?client_id=" + CLIENT_ID;
+    fetch(url)
+    .then(res => res.json())
+    .then(resJson => {
+      this.setState({
+        channels: this.state.channels.concat(resJson),
+        default: this.state.channels.concat(resJson)
+      }) 
+    })
+    .catch(console.log);
+  }
+  
+  isErr(status){
+    return status == 404 || status == 422
+    // return true if there is an error
+    // false if there isn't'
+  }
+  
+  
+  filterOnline(e) {
+    e.preventDefault();
+    let channels = this.state.default
+    const filtered = channels.filter( c => this.isErr(c.status) ? null : c )
+    console.log('online', filtered)
+    this.setState({
+      channels : filtered
+    })
+  }
+  
+  filterOffline(e) {
+    e.preventDefault()
+    const channels = this.state.default
+    const offlineChannels = channels.filter( c => this.isErr(c.status) && c )
+    console.log(offlineChannels)
+    this.setState ({
+      channels: offlineChannels
+    })
+
+  }
+
+  filterAll() {
+    console.log('all')
+    const all = this.state.default
+    this.setState ({
+      channels: all
+    })
+  }
+  
+  deleteCard(e) {
+    e.preventDefault()
+    const deleteId = parseInt(e.currentTarget.value);
+    const channels = this.state.channels
+    let newArray = channels.filter( c => {
+      if (c._id === undefined) {
+        return false
+      } else {
+        // if channel id matches delete id then filter it 
+        // out by returning null/false if not just return c
+        return c._id === deleteId ? false : c
+      }
+    })
+    
+    this.setState({
+      channels: newArray
+    })
+ 
+  }
+  
+  render() {
+    return(
+      <Container>
+        <Logo logo={TWITCH_LOGO} />
+        <InputChannel
+          input = {this.state.input}
+          inputChange = { input => setState({input}) } // set new state of input
+          addChannel = {e => this.fetchChannel()} //add channel to array
+        />
+        <ChannelTypes
+          online = {this.filterOnline}
+          offline = {this.filterOffline}
+          all = {this.filterAll}
+          />
+        <ChannelList 
+          channels={this.state.channels}
+          deleteCard = {this.deleteCard}
+        />
+      </Container>
+    );
+  }
+}
+//Presentational components
+
+const Container = props => <div className="container">{props.children}</div>;  
+
+const Logo = props => {
+
+  return (
+    <div className="row">
+      <div className="col-xs-8 col-xs-push-2">
+      <img src = {props.logo} className = "img-responsive center-block page-logo" />
+      </div>
+    </div>
+  );
+}
+
+//Input new channel here
+const InputChannel = props => {
+  return (
+    <div className = "row">
+      <div className = "col-xs-12 col-md-8 col-md-push-2">
+        <div className = "input-group search-bar">
+          <input type="text" className = "form-control" placeholder = "Add channel here..."
+            value = {props.input} //dump input props as new value
+            onChange = {e => props.inputChange(e.target.value)} //handle the new input
+            />
+          <span className = "input-group-btn">
+          <button className = "btn btn-default" type = "button"
+            onClick = { e => props.addChannel()}>
+            Add!
+          </button>
+          </span>
+         </div>
+      </div>
+    </div>
+  );
+}
+
+//Online/Offline buttons
+
+const ChannelTypes = ({online, offline, all}) => {
+  return (
+    <div className = "btn-group status-buttons">
+    <button className = "btn btn-default" type = "button" 
+            onClick = {online}> Online </button>
+    <button className = "btn btn-default"
+            type = "button"
+            onClick={offline}> Offline </button>
+    <button className = "btn btn-default" 
+            type = "button"
+            onClick={all}> All </button>
+    </div>
+  );
+}
+
+//Mapping through ChannelList and creating a ChannelCard for each channel
+const ChannelList = props => {
+  return (
+    <div className = "row">
+      <div className = "col-xs-12">
+        {props.channels.map (channel => 
+        <ChannelCard 
+        key={ channel._id} 
+        channel={channel}
+        deleteCard = {props.deleteCard}
+
+        />) }
+      </div>
+     </div>
+  );
+}
+
+
+const ChannelCard = props => {
+
+  return (
+    <div className = "col-sm-6">
+        <div className = "channel text-center">
+          <img className = "img-responsive channel-logo" src={props.channel.logo} />
+          <a href={props.channel.url} target="_blank">
+          <h3 className = "channel-name"> {props.channel.display_name}</h3>
+          <p className= "channel-subtitle">
+            {props.channel.error ? 
+              <div>{props.channel.message}</div> 
+              : 
+              <div> <em>{props.channel.game}</em> - {props.channel.status}</div>
+            }
+          </p>
+          </a>
+         <button className="btn btn-default" 
+            type="button" 
+            onClick={props.deleteCard} 
+            value={props.channel._id}> x 
+         </button>
+       </div>
+    </div>
+  );
+}
+
+
+
+
+ReactDOM.render(<Twitch />, document.getElementById("twitch"));
